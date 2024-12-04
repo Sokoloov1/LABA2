@@ -1,0 +1,71 @@
+#include <iostream>
+#include <vector>
+#include <unordered_set>
+#include <algorithm>
+
+using namespace std;
+
+// Функция для нахождения двух множеств с максимальным количеством общих элементов
+pair<vector<int>, vector<int>> findMaxCommonSubsets(const vector<vector<int>>& subsets) {
+    int maxCommonCount = 0;
+    pair<vector<int>, vector<int>> result;
+
+    // Проходим по всем парам подмножеств
+    for (size_t i = 0; i < subsets.size(); ++i) {
+        for (size_t j = i + 1; j < subsets.size(); ++j) {
+            // Используем unordered_set для быстрого подсчета общих элементов
+            unordered_set<int> set1(subsets[i].begin(), subsets[i].end());
+            unordered_set<int> set2(subsets[j].begin(), subsets[j].end());
+
+            int commonCount = 0;
+            // Подсчитываем количество общих элементов
+            for (int elem : set2) {
+                if (set1.find(elem) != set1.end()) {
+                    commonCount++;
+                }
+            }
+
+            // Если текущее количество общих элементов больше максимального, обновляем результат
+            if (commonCount > maxCommonCount) {
+                maxCommonCount = commonCount;
+                result = {subsets[i], subsets[j]};
+            }
+        }
+    }
+
+    return result;
+}
+
+int main() {
+    // Пример ввода
+    vector<vector<int>> subsets = {{1, 2, 3}, {2, 3, 4}, {5, 6}, {3, 4, 5}};
+
+    // Находим два множества с максимальным количеством общих элементов
+    pair<vector<int>, vector<int>> result = findMaxCommonSubsets(subsets);
+
+    // Выводим результат
+    cout << "Два множества с максимальным количеством общих элементов: " << endl;
+    cout << "{";
+    for (int elem : result.first) {
+        cout << elem << " ";
+    }
+    cout << "}, {";
+    for (int elem : result.second) {
+        cout << elem << " ";
+    }
+    cout << "}" << endl;
+
+    // Подсчитываем количество общих элементов
+    unordered_set<int> set1(result.first.begin(), result.first.end());
+    unordered_set<int> set2(result.second.begin(), result.second.end());
+    int commonCount = 0;
+    for (int elem : set2) {
+        if (set1.find(elem) != set1.end()) {
+            commonCount++;
+        }
+    }
+
+    cout << "Количество общих элементов: " << commonCount << endl;
+
+    return 0;
+}
