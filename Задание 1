@@ -1,0 +1,94 @@
+#include <iostream>
+#include <stack>
+#include <string>
+
+using namespace std;
+
+int evaluateExpression(const string& expression) {
+    // Удаляем пробелы из выражения
+    string expr;
+    for (char c : expression) {
+        if (c != ' ') {
+            expr += c;
+        }
+    }
+
+    // Стек для операндов
+    stack<int> operands;
+    // Стек для операторов
+    stack<char> operators;
+
+    // Функция для применения оператора к двум операндам
+    auto applyOperator = [&]() {
+        char op = operators.top();
+        operators.pop();
+
+        int b = operands.top();
+        operands.pop();
+        int a = operands.top();
+        operands.pop();
+
+        switch (op) {
+            case '&':
+                operands.push(a & b);
+                break;
+            case '|':
+                operands.push(a | b);
+                break;
+            case '^':
+                operands.push(a ^ b);
+                break;
+        }
+    };
+
+    for (char c : expr) {
+        switch (c) {
+            case '0':
+            case '1':
+                // Добавляем операнд в стек
+                operands.push(c - '0');
+                break;
+            case '!':
+                // Применяем отрицание к следующему операнду
+                int next = operands.top();
+                operands.pop();
+                operands.push(1 - next);
+                break;
+            case '&':
+            case '|':
+            case '^':
+                // Применяем операторы в соответствии с приоритетом
+                while (!operators.empty() && operators.top() != '(') {
+                    applyOperator();
+                }
+                operators.push(c);
+                break;
+            case '(':
+                // Добавляем открывающую скобку в стек операторов
+                operators.push(c);
+                break;
+            case ')':
+                // Применяем все операторы до открывающей скобки
+                while (!operators.empty() && operators.top() != '(') {
+                    applyOperator();
+                }
+                operators.pop(); // Удаляем открывающую скобку
+                break;
+        }
+    }
+
+    // Применяем оставшиеся операторы
+    while (!operators.empty()) {
+        applyOperator();
+    }
+
+    // Возвращаем результат
+    return operands.top();
+}
+
+int main() {
+    string expression = "1 & (0 | 1) ^ 0";
+    int result = evaluateExpression(expression);
+    cout << "Результат: " << result << endl;
+    return 0;
+}
