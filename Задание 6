@@ -1,0 +1,52 @@
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+// Функция для подсчета количества подчиненных для каждого менеджера
+unordered_map<string, int> countSubordinates(const unordered_map<string, string>& employees) {
+    unordered_map<string, int> subordinatesCount;
+
+    // Инициализируем счетчик для каждого сотрудника
+    for (const auto& pair : employees) {
+        subordinatesCount[pair.first] = 0;
+    }
+
+    // Подсчитываем количество подчиненных для каждого менеджера
+    for (const auto& pair : employees) {
+        string employee = pair.first;
+        string manager = pair.second;
+
+        // Проходим по цепочке менеджеров
+        while (manager != employee) {
+            subordinatesCount[manager]++;
+            manager = employees.at(manager);
+        }
+    }
+
+    return subordinatesCount;
+}
+
+int main() {
+    // Таблица сотрудников и их менеджеров
+    unordered_map<string, string> employees = {
+        {"A", "B"},
+        {"C", "B"},
+        {"D", "E"},
+        {"B", "E"},
+        {"E", "E"}
+    };
+
+    // Подсчитываем количество подчиненных для каждого менеджера
+    unordered_map<string, int> result = countSubordinates(employees);
+
+    // Выводим результат
+    for (const auto& pair : employees) {
+        string employee = pair.first;
+        cout << employee << "-" << result[employee] << endl;
+    }
+
+    return 0;
+}
