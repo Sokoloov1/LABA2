@@ -1,0 +1,46 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+
+using namespace std;
+
+int minSubsetDifference(const vector<int>& nums) {
+    int totalSum = 0;
+    // Вычисляем общую сумму всех элементов в массиве
+    for (int num : nums) {
+        totalSum += num;
+    }
+
+    // Создаем массив dp для хранения возможности получения суммы j
+    vector<bool> dp(totalSum / 2 + 1, false);
+    dp[0] = true; // Сумма 0 всегда достижима
+
+    // Заполняем массив dp
+    for (int num : nums) {
+        // Обратный порядок для избежания повторного использования элемента
+        for (int j = totalSum / 2; j >= num; j--) {
+            if (dp[j - num]) {
+                dp[j] = true;
+            }
+        }
+    }
+
+    // Находим минимальную разницу
+    int minDiff = INT_MAX;
+    for (int j = totalSum / 2; j >= 0; j--) {
+        if (dp[j]) {
+            minDiff = totalSum - 2 * j;
+            break;
+        }
+    }
+
+    return minDiff;
+}
+
+int main() {
+    vector<int> nums = {6, 8, 1, 14, 7};
+    int minDiff = minSubsetDifference(nums);
+    cout << "минимальная разница: " << minDiff << endl;
+    return 0;
+}
