@@ -1,0 +1,65 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Структура для представления блока
+struct Block {
+    int width;
+    int height;
+};
+
+// Функция для сравнения блоков по ширине
+bool compareBlocks(const Block& a, const Block& b) {
+    return a.width < b.width;
+}
+
+// Функция для нахождения наибольшей высоты пирамиды
+int maxPyramidHeight(vector<Block>& blocks) {
+    // Сортируем блоки по ширине
+    sort(blocks.begin(), blocks.end(), compareBlocks);
+
+    // Массив для хранения максимальной высоты пирамиды, которую можно построить с использованием i-го блока в качестве основания
+    vector<int> dp(blocks.size(), 0);
+
+    // Инициализируем массив dp
+    for (size_t i = 0; i < blocks.size(); ++i) {
+        dp[i] = blocks[i].height;
+    }
+
+    // Находим максимальную высоту пирамиды
+    for (size_t i = 1; i < blocks.size(); ++i) {
+        for (size_t j = 0; j < i; ++j) {
+            if (blocks[j].width < blocks[i].width) {
+                dp[i] = max(dp[i], dp[j] + blocks[i].height);
+            }
+        }
+    }
+
+    // Находим максимальное значение в массиве dp
+    int maxHeight = 0;
+    for (size_t i = 0; i < dp.size(); ++i) {
+        maxHeight = max(maxHeight, dp[i]);
+    }
+
+    return maxHeight;
+}
+
+int main() {
+    int N;
+    cin >> N;
+
+    vector<Block> blocks(N);
+    for (int i = 0; i < N; ++i) {
+        cin >> blocks[i].width >> blocks[i].height;
+    }
+
+    // Находим наибольшую высоту пирамиды
+    int maxHeight = maxPyramidHeight(blocks);
+
+    // Выводим результат
+    cout << maxHeight << endl;
+
+    return 0;
+}
