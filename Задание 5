@@ -1,0 +1,73 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Структура для представления узла бинарного дерева поиска
+struct TreeNode {
+    int val;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+// Функция для добавления элемента в бинарное дерево поиска и возврата глубины
+int insertAndGetDepth(TreeNode*& root, int value) {
+    // Если дерево пустое, создаем новый корень
+    if (root == nullptr) {
+        root = new TreeNode(value);
+        return 1; // Глубина корня равна 1
+    }
+
+    // Инициализируем текущий узел и глубину
+    TreeNode* current = root;
+    int depth = 1;
+
+    // Ищем место для вставки элемента
+    while (true) {
+        // Если элемент уже есть в дереве, возвращаем 0 (ничего не добавляем)
+        if (current->val == value) {
+            return 0;
+        }
+
+        // Если элемент меньше текущего узла, идем влево
+        if (value < current->val) {
+            if (current->left == nullptr) {
+                current->left = new TreeNode(value);
+                return depth + 1; // Глубина нового узла
+            }
+            current = current->left;
+        }
+        // Если элемент больше текущего узла, идем вправо
+        else {
+            if (current->right == nullptr) {
+                current->right = new TreeNode(value);
+                return depth + 1; // Глубина нового узла
+            }
+            current = current->right;
+        }
+
+        // Увеличиваем глубину на каждом шаге
+        depth++;
+    }
+}
+
+int main() {
+    // Ввод элементов
+    vector<int> elements = {7, 3, 2, 1, 9, 5, 4, 6, 8, 0};
+
+    // Инициализация корня дерева
+    TreeNode* root = nullptr;
+
+    // Добавляем элементы в дерево и выводим глубину
+    for (int value : elements) {
+        int depth = insertAndGetDepth(root, value);
+        if (depth > 0) {
+            cout << depth << " ";
+        }
+    }
+
+    cout << endl;
+
+    return 0;
+}
