@@ -1,46 +1,55 @@
 #include <iostream>
-#include <vector>
-#include <algorithm>
-#include <climits>
+#include <unordered_set>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 using namespace std;
 
-int minSubsetDifference(const vector<int>& nums) {
-    int totalSum = 0;
-    // Вычисляем общую сумму всех элементов в массиве
-    for (int num : nums) {
-        totalSum += num;
+int main(int argc, char* argv[]) {
+    // Проверяем аргументы командной строки
+    if (argc < 5) {
+        cerr << "Использование: ./program --file <путь до файла> -query <запрос>" << endl;
+        return 1;
     }
 
-    // Создаем массив dp для хранения возможности получения суммы j
-    vector<bool> dp(totalSum / 2 + 1, false);
-    dp[0] = true; // Сумма 0 всегда достижима
+    string file_path = argv[2]; // Путь до файла
+    string query = argv[4];     // Запрос
 
-    // Заполняем массив dp
-    for (int num : nums) {
-        // Обратный порядок для избежания повторного использования элемента
-        for (int j = totalSum / 2; j >= num; j--) {
-            if (dp[j - num]) {
-                dp[j] = true;
-            }
+    // Создаем множество
+    unordered_set<int> mySet;
+
+    // Читаем начальные данные из файла
+    ifstream file(file_path);
+    if (file.is_open()) {
+        int num;
+        while (file >> num) {
+            mySet.insert(num); // Добавляем элементы в множество
         }
+        file.close();
+    } else {
+        cerr << "Не удалось открыть файл: " << file_path << endl;
+        return 1;
     }
 
-    // Находим минимальную разницу
-    int minDiff = INT_MAX;
-    for (int j = totalSum / 2; j >= 0; j--) {
-        if (dp[j]) {
-            minDiff = totalSum - 2 * j;
-            break;
-        }
+    // Обрабатываем запрос
+    istringstream queryStream(query);
+    string operation;
+    int element;
+    queryStream >> operation >> element;
+
+    if (operation == "SETADD") {
+        mySet.insert(element); // Добавляем элемент
+    } else if (operation == "SETDEL") {
+        mySet.erase(element); // Удаляем элемент
+    } else if (operation == "SET_AT") {
+        // Проверяем наличие элемента
+        bool exists = mySet.find(element) != mySet.end();
+        cout << (exists ? "true" : "false") << endl;
+    } else {
+        cerr << "Неизвестный запрос: " << operation << endl;
+        return 1;
     }
 
-    return minDiff;
-}
-
-int main() {
-    vector<int> nums = {6, 8, 1, 14, 7};
-    int minDiff = minSubsetDifference(nums);
-    cout << "минимальная разница: " << minDiff << endl;
     return 0;
 }
