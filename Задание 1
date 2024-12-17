@@ -1,11 +1,12 @@
 #include <iostream>
 #include <stack>
 #include <string>
+#include <unordered_map>
 
 using namespace std;
 
 int evaluateExpression(const string& expression) {
-    // Удаляем пробелы из выражения
+    // Удаляем пробелы из выражения, чтобы упростить обработку
     string expr;
     for (char c : expression) {
         if (c != ' ') {
@@ -13,82 +14,106 @@ int evaluateExpression(const string& expression) {
         }
     }
 
-    // Стек для операндов
+    // Стек для операндов (чисел 0 или 1)
     stack<int> operands;
-    // Стек для операторов
+    // Стек для операторов (!, &, |, ^, (, ))
     stack<char> operators;
 
-    // Функция для применения оператора к двум операндам
+    // Приоритет операций: чем больше значение, тем выше приоритет
+    unordered_map<char, int> precedence = {
+        {'!', 3}, // Отрицание имеет наивысший приоритет
+        {'&', 2}, // Логическое И
+        {'|', 1}, // Логическое ИЛИ
+        {'^', 1}  // Исключающее ИЛИ
+    };
+
+    // Функция для применения оператора к операндам
     auto applyOperator = [&]() {
-        char op = operators.top();
-        operators.pop();
+        char op = operators.top(); // Берем оператор из стека
+        operators.pop();           // Удаляем его из стека
 
-        int b = operands.top();
-        operands.pop();
-        int a = operands.top();
-        operands.pop();
+        if (op == '!') {
+            // Отрицание применяется к одному операнду
+            int a = operands.top(); // Берем верхний операнд
+            operands.pop();         // Удаляем его из стека
+            operands.push(1 - a);   // Применяем отрицание (1 - a)
+        } else {
+            // Остальные операции применяются к двум операндам
+            int b = operands.top(); // Второй операнд (справа)
+            operands.pop();         // Удаляем его из стека
+            int a = operands.top(); // Первый операнд (слева)
+            operands.pop();         // Удаляем его из стека
 
-        switch (op) {
-            case '&':
-                operands.push(a & b);
-                break;
-            case '|':
-                operands.push(a | b);
-                break;
-            case '^':
-                operands.push(a ^ b);
-                break;
+            // Применяем оператор к операндам
+            switch (op) {
+                case '&':
+                    operands.push(a & b); // Логическое И
+                    break;
+                case '|':
+                    operands.push(a | b); // Логическое ИЛИ
+                    break;
+                case '^':
+                    operands.push(a ^ b); // Исключающее ИЛИ
+                    break;
+            }
         }
     };
 
-    for (char c : expr) {
+    // Обрабатываем каждый символ в выражении
+    for (size_t i = 0; i < expr.size(); ++i) {
+        char c = expr[i];
+
         switch (c) {
             case '0':
             case '1':
-                // Добавляем операнд в стек
-                operands.push(c - '0');
+                // Если символ — операнд (0 или 1), добавляем его в стек операндов
+                operands.push(c - '0'); // Преобразуем символ в число
                 break;
             case '!':
-                // Применяем отрицание к следующему операнду
-                int next = operands.top();
-                operands.pop();
-                operands.push(1 - next);
+                // Если символ — отрицание, добавляем его в стек операторов
+                operators.push(c);
                 break;
             case '&':
             case '|':
             case '^':
-                // Применяем операторы в соответствии с приоритетом
-                while (!operators.empty() && operators.top() != '(') {
+                // Если символ — оператор (&, |, ^), обрабатываем приоритеты
+                while (!operators.empty() && operators.top() != '(' &&
+                       precedence[operators.top()] >= precedence[c]) {
+                    // Применяем операторы с более высоким или равным приоритетом
                     applyOperator();
                 }
+                // Добавляем текущий оператор в стек операторов
                 operators.push(c);
                 break;
             case '(':
-                // Добавляем открывающую скобку в стек операторов
+                // Если символ — открывающая скобка, добавляем ее в стек операторов
                 operators.push(c);
                 break;
             case ')':
-                // Применяем все операторы до открывающей скобки
+                // Если символ — закрывающая скобка, вычисляем все операторы внутри скобок
                 while (!operators.empty() && operators.top() != '(') {
                     applyOperator();
                 }
-                operators.pop(); // Удаляем открывающую скобку
+                operators.pop(); // Удаляем открывающую скобку из стека
                 break;
         }
     }
 
-    // Применяем оставшиеся операторы
+    // После обработки всех символов применяем оставшиеся операторы
     while (!operators.empty()) {
         applyOperator();
     }
 
-    // Возвращаем результат
+    // Результат вычисления находится на вершине стека операндов
     return operands.top();
 }
 
 int main() {
-    string expression = "1 & (0 | 1) ^ 0";
+    // Пример выражения для вычисления
+    string expression = "!1 & (0 | 1 ^ 0)";
+    // Вычисляем результат
     int result = evaluateExpression(expression);
+    // Выводим результат
     cout << "Результат: " << result << endl;
     return 0;
 }
