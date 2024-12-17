@@ -12,7 +12,10 @@ struct Block {
 
 // Функция для сравнения блоков по ширине
 bool compareBlocks(const Block& a, const Block& b) {
-    return a.width < b.width;
+    if (a.width == b.width) {
+        return a.height > b.height; // Если ширина одинаковая, блоки с большей высотой идут раньше
+    }
+    return a.width < b.width; // Сортируем по ширине
 }
 
 // Функция для нахождения наибольшей высоты пирамиды
@@ -23,13 +26,9 @@ int maxPyramidHeight(vector<Block>& blocks) {
     // Массив для хранения максимальной высоты пирамиды, которую можно построить с использованием i-го блока в качестве основания
     vector<int> dp(blocks.size(), 0);
 
-    // Инициализируем массив dp
+    // Инициализируем массив dp и вычисляем максимальную высоту
     for (size_t i = 0; i < blocks.size(); ++i) {
         dp[i] = blocks[i].height;
-    }
-
-    // Находим максимальную высоту пирамиды
-    for (size_t i = 1; i < blocks.size(); ++i) {
         for (size_t j = 0; j < i; ++j) {
             if (blocks[j].width < blocks[i].width) {
                 dp[i] = max(dp[i], dp[j] + blocks[i].height);
@@ -53,6 +52,11 @@ int main() {
     vector<Block> blocks(N);
     for (int i = 0; i < N; ++i) {
         cin >> blocks[i].width >> blocks[i].height;
+        if (blocks[i].width < 1 || blocks[i].width > 1000000000 ||
+            blocks[i].height < 1 || blocks[i].height > 1000000000) {
+            cerr << "Некорректные данные: ширина или высота блока выходят за пределы допустимых значений." << endl;
+            return 1;
+        }
     }
 
     // Находим наибольшую высоту пирамиды
