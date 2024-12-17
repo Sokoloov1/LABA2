@@ -5,28 +5,20 @@
 
 using namespace std;
 
-// Функция для подсчета количества подчиненных для каждого менеджера
-unordered_map<string, int> countSubordinates(const unordered_map<string, string>& employees) {
-    unordered_map<string, int> subordinatesCount;
+// Словарь для хранения подчиненных каждого менеджера
+unordered_map<string, vector<string>> subordinates;
 
-    // Инициализируем счетчик для каждого сотрудника
-    for (const auto& pair : employees) {
-        subordinatesCount[pair.first] = 0;
-    }
-
-    // Подсчитываем количество подчиненных для каждого менеджера
-    for (const auto& pair : employees) {
-        string employee = pair.first;
-        string manager = pair.second;
-
-        // Проходим по цепочке менеджеров
-        while (manager != employee) {
-            subordinatesCount[manager]++;
-            manager = employees.at(manager);
+// Рекурсивная функция для подсчета подчиненных
+int countSubordinates(const string& manager) {
+    int count = 0;
+    // Если у менеджера есть подчиненные
+    if (subordinates.find(manager) != subordinates.end()) {
+        // Подсчитываем подчиненных каждого подчиненного
+        for (const string& subordinate : subordinates[manager]) {
+            count += 1 + countSubordinates(subordinate); // +1 за самого подчиненного
         }
     }
-
-    return subordinatesCount;
+    return count;
 }
 
 int main() {
@@ -39,14 +31,25 @@ int main() {
         {"E", "E"}
     };
 
-    // Подсчитываем количество подчиненных для каждого менеджера
-    unordered_map<string, int> result = countSubordinates(employees);
-
-    // Выводим результат
+    // Построение иерархии
     for (const auto& pair : employees) {
         string employee = pair.first;
-        cout << employee << "-" << result[employee] << endl;
+        string manager = pair.second;
+        subordinates[manager].push_back(employee);
     }
+
+    // Подсчет подчиненных для каждого сотрудника
+    unordered_map<string, int> result;
+    for (const auto& pair : employees) {
+        string employee = pair.first;
+        result[employee] = countSubordinates(employee);
+    }
+
+    // Выводим результат
+    for (const auto& pair : result) {
+        cout << pair.first << "-" << pair.second << " ";
+    }
+    cout << endl;
 
     return 0;
 }
