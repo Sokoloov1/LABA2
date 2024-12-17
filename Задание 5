@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 
 using namespace std;
 
@@ -52,15 +51,21 @@ int insertAndGetDepth(TreeNode*& root, int value) {
     }
 }
 
-int main() {
-    // Ввод элементов
-    vector<int> elements = {7, 3, 2, 1, 9, 5, 4, 6, 8, 0};
+// Функция для удаления дерева
+void deleteTree(TreeNode* root) {
+    if (root == nullptr) return;
+    deleteTree(root->left);
+    deleteTree(root->right);
+    delete root;
+}
 
+int main() {
     // Инициализация корня дерева
     TreeNode* root = nullptr;
 
-    // Добавляем элементы в дерево и выводим глубину
-    for (int value : elements) {
+    // Ввод элементов
+    int value;
+    while (cin >> value && value != 0) { // Завершаем ввод, если встречаем 0
         int depth = insertAndGetDepth(root, value);
         if (depth > 0) {
             cout << depth << " ";
@@ -68,6 +73,9 @@ int main() {
     }
 
     cout << endl;
+
+    // Освобождаем память
+    deleteTree(root);
 
     return 0;
 }
