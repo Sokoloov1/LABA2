@@ -1,55 +1,95 @@
 #include <iostream>
-#include <unordered_map>
 #include <vector>
 #include <string>
+#include <map>
 
 using namespace std;
 
-// Словарь для хранения подчиненных каждого менеджера
-unordered_map<string, vector<string>> subordinates;
+// Определяем класс для представления узла дерева
+class TreeNode {
+public:
+    string name;
+    vector<TreeNode*> children;
+    
+    TreeNode(const string& name) : name(name) {}
+};
 
-// Рекурсивная функция для подсчета подчиненных
-int countSubordinates(const string& manager) {
+// Рекурсивная функция для подсчета потомков
+int countDescendants(TreeNode* node, map<string, int>& descendantsCount) {
     int count = 0;
-    // Если у менеджера есть подчиненные
-    if (subordinates.find(manager) != subordinates.end()) {
-        // Подсчитываем подчиненных каждого подчиненного
-        for (const string& subordinate : subordinates[manager]) {
-            count += 1 + countSubordinates(subordinate); // +1 за самого подчиненного
-        }
+    for (auto child : node->children) {
+        count += 1 + countDescendants(child, descendantsCount);
     }
+    descendantsCount[node->name] = count;
     return count;
 }
 
 int main() {
-    // Таблица сотрудников и их менеджеров
-    unordered_map<string, string> employees = {
-        {"A", "B"},
-        {"C", "B"},
-        {"D", "E"},
-        {"B", "E"},
-        {"E", "E"}
-    };
+    int N;
+    cin >> N; // Считываем количество элементов в древе
+    
+    string child, parent;
+    map<string, TreeNode*> nodes;
 
-    // Построение иерархии
-    for (const auto& pair : employees) {
-        string employee = pair.first;
-        string manager = pair.second;
-        subordinates[manager].push_back(employee);
+    // Считываем родительские отношения
+    for (int i = 0; i < N - 1; ++i) {
+        cin >> child >> parent;
+
+        if (nodes.find(parent) == nodes.end()) {
+            nodes[parent] = new TreeNode(parent);
+        }
+        if (nodes.find(child) == nodes.end()) {
+            nodes[child] = new TreeNode(child);
+        }
+
+        nodes[parent]->children.push_back(nodes[child]);
     }
 
-    // Подсчет подчиненных для каждого сотрудника
-    unordered_map<string, int> result;
-    for (const auto& pair : employees) {
-        string employee = pair.first;
-        result[employee] = countSubordinates(employee);
+    // Находим корень дерева (родоначальника)
+    TreeNode* root = nullptr;
+    for (const auto& pair : nodes) {
+        bool isChild = false;
+        for (const auto& otherPair : nodes) {
+            for (auto childNode : otherPair.second->children) {
+                if (childNode == pair.second) {
+                    isChild = true;
+                    break; // Если нашли, что это потомок, то выходим из цикла
+                }
+            }
+            if (isChild) break; // Выходим если нашли
+        }
+        if (!isChild) { // Если не нашли, то это родоначальник
+            root = pair.second;
+            break;
+        }
     }
 
-    // Выводим результат
-    for (const auto& pair : result) {
-        cout << pair.first << "-" << pair.second << " ";
+    map<string, int> descendantsCount;
+    countDescendants(root, descendantsCount); // Подсчитываем потомков
+
+    // Сортируем и выводим элементы
+    // Сначала собираем имена
+    vector<string> names;
+    for (const auto& pair : nodes) {
+        names.push_back(pair.first);
     }
-    cout << endl;
+
+    for (size_t i = 0; i < names.size(); ++i) {
+        for (size_t j = i + 1; j < names.size(); ++j) {
+            if (names[i] > names[j]) {
+                swap(names[i], names[j]);
+            }
+        }
+    }
+
+    // Выводим имя и количество потомков
+    for (const auto& name : names) {
+        cout << name << " " << descendantsCount[name] << endl;
+    }
+
+    for (const auto& pair : nodes) {
+        delete pair.second;
+    }
 
     return 0;
 }
